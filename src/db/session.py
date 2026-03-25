@@ -22,6 +22,6 @@ async def get_db():
         try:
             yield session
 
-        except:
+        except Exception:
             await session.rollback()
             raise
