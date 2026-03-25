@@ -1,6 +1,9 @@
-def main():
-    print("Hello from edusuite-backend!")
+from fastapi import FastAPI
 
 
-if __name__ == "__main__":
-    main()
+app = FastAPI()
+
+
+@app.get("/")
+def routes():
+    return "hello edusuite"
