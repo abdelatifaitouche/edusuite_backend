@@ -3,12 +3,19 @@ from src.features.crm.schemas.company import CompanyCreate, CompanyRead
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from sqlalchemy.sql import Select
+from src.core.pagination import Pagination
 from uuid import UUID
+from src.db.repositories.base_repository import BaseRepository
 
 
-class CompanyRepository:
-    async def list(self, db: AsyncSession) -> list[CompanyRead]:
-        stmt = select(CompanyModel)
+class CompanyRepository(BaseRepository[CompanyModel]):
+    def __init__(self):
+        super().__init__(CompanyModel)
+
+    async def list(self, db: AsyncSession, pagination: Pagination) -> list[CompanyRead]:
+        stmt = (
+            select(CompanyModel).offset(pagination.offset).limit(pagination.page_size)
+        )
 
         results = await db.execute(stmt)
 
