@@ -22,3 +22,17 @@ async def create_company(
     data: CompanyCreate, service: CompanyUseCases = Depends(get_service)
 ):
     return await service.create(data)
+
+
+@router.get("/companies/{company_id}")
+async def get_company_by_id(
+    company_id: str, service: CompanyUseCases = Depends(get_service)
+):
+    return await service.get_by_id(company_id)
+
+
+@router.delete("/companies/{company_id}")
+async def delete_company(
+    company_id: str, service: CompanyUseCases = Depends(get_service)
+):
+    return await service.delete(company_id)

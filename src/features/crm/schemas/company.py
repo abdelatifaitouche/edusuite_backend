@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from src.features.crm.models.company_enums import ActivitySector, OrgType
+from src.features.crm.models.company_enums import CompanyStatus, ActivitySector, OrgType
+from uuid import UUID
 
 
 class CompanyCreate(BaseModel):
@@ -19,8 +20,10 @@ class CompanyCreate(BaseModel):
 
 
 class CompanyRead(BaseModel):
+    id: UUID
     legal_name: str
     trade_name: str | None = ""
+    status: CompanyStatus
     organization_type: OrgType
     activity_sector: ActivitySector
     website: str | None = ""

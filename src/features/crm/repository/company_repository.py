@@ -1,8 +1,9 @@
 from src.features.crm.models.companies import CompanyModel
 from src.features.crm.schemas.company import CompanyCreate, CompanyRead
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.sql import Select
+from uuid import UUID
 
 
 class CompanyRepository:
@@ -15,8 +16,14 @@ class CompanyRepository:
 
         return [CompanyRead.from_orm(company) for company in companies]
 
-    def get_by_id(self):
-        return
+    async def get_by_id(self, db: AsyncSession, entity_id: UUID) -> CompanyRead:
+        stmt = select(CompanyModel).where(CompanyModel.id == entity_id)
+
+        result = await db.execute(stmt)
+
+        company = result.scalar_one_or_none()
+
+        return CompanyRead.from_orm(company)
 
     async def save(self, db: AsyncSession, data: CompanyCreate) -> CompanyRead:
         company: CompanyModel = CompanyModel(**data.dict())
@@ -27,5 +34,9 @@ class CompanyRepository:
 
         return CompanyRead.from_orm(company)
 
-    def delete(self):
-        return
+    async def delete(self, db: AsyncSession, entity_id: UUID):
+        stmt = delete(CompanyModel).where(CompanyModel.id == entity_id)
+
+        result = await db.execute(stmt)
+
+        return result.rowcount > 0  # type: ignore
