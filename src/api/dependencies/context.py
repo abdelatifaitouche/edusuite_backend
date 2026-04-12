@@ -11,7 +11,7 @@ from src.features.auth.schemas.jwt_payload import JwtPayload
 _jwt_manager = JwtManager()
 
 
-def get_auth_context(
+async def get_auth_context(
     access_token: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
     pagination: Pagination = Depends(),
@@ -38,7 +38,7 @@ def get_auth_context(
     )
 
 
-def get_context(
+async def get_context(
     db: AsyncSession = Depends(get_db), pagination: Pagination = Depends()
 ) -> RequestContext:
     return RequestContext(db, pagination)

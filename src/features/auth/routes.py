@@ -39,12 +39,19 @@ async def login_user(
     return {"message": "Logged In"}
 
 
-def me():
-    return
+@router.get("/me")
+async def me(ctx: RequestContext = Depends(get_auth_context)):
+    return ctx.user
 
 
-def get_user_by_id():
-    return
+@router.post("/logout/")
+async def logout(response: Response, ctx: RequestContext = Depends(get_auth_context)):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax",
+    )
+    return {"message": "Logged out"}
 
 
 @router.get("/list_users")

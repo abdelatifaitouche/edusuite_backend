@@ -11,8 +11,8 @@ class RequestContext:
         self.db: AsyncSession = db
         self.pagination: Pagination = pagination
 
-    def is_authenticated(self):
-        return
+    def is_authenticated(self) -> bool:
+        return True if self.user else False
 
     def has_permission(self):
         return
