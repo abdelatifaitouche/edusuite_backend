@@ -9,10 +9,11 @@ from src.db.repositories.base_repository import BaseRepository
 
 
 class CompanyRepository(BaseRepository[CompanyModel]):
-    def __init__(self):
-        super().__init__(CompanyModel)
+    def __init__(self, db: AsyncSession):
+        super().__init__(db, CompanyModel)
 
-    async def list(self, db: AsyncSession, pagination: Pagination) -> list[CompanyRead]:
+    """
+    async def list(selfpagination: Pagination) -> list[CompanyRead]:
         stmt = (
             select(CompanyModel).offset(pagination.offset).limit(pagination.page_size)
         )
@@ -47,3 +48,5 @@ class CompanyRepository(BaseRepository[CompanyModel]):
         result = await db.execute(stmt)
 
         return result.rowcount > 0  # type: ignore
+
+    """

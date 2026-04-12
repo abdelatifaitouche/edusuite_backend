@@ -1,38 +1,23 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.features.crm.repository.company_repository import CompanyRepository
 from src.features.crm.schemas.company import CompanyRead, CompanyCreate
+from src.features.crm.models.companies import CompanyModel
 from uuid import UUID
 from src.core.pagination import Pagination
 from src.core.request_context import RequestContext
 
 
-class BaseUC:
-    async def list(self):
-        return
-
-    async def get_by_id(self):
-        return
-
-    async def create(self):
-        return
-
-    async def update(self):
-        return
-
-    async def delete(self):
-        return
-
-
 class CompanyUseCases:
     def __init__(self, ctx: RequestContext):
         self.ctx = ctx
-        self.repo: CompanyRepository = CompanyRepository()
+        self.repo: CompanyRepository = CompanyRepository(db=self.ctx.db)
 
     async def list(self, pagination: Pagination) -> list[CompanyRead]:
-        return await self.repo.list(self.ctx.db, pagination)
+        models: list[CompanyModel] = await self.repo.list(pagination)
+        return [CompanyRead.model_validate(model) for model in models]
 
     async def create(self, data: CompanyCreate) -> CompanyRead:
-        company: CompanyRead = await self.repo.save(self.ctx.db, data)
+        company: CompanyRead = await self.repo.save(data)
         await self.ctx.db.commit()
         return company
 
