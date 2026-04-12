@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = ""
     POSTGRES_PORT: str = ""
 
+    JWT_SECRET_KEY: str = ""
+    JWT_ALG: str = ""
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

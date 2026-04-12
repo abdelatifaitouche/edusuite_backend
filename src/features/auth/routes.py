@@ -17,8 +17,10 @@ async def create_user(data: CreateUser, ctx: RequestContext = Depends(get_contex
     return user
 
 
-def login_user():
-    return
+@router.post("/login/")
+async def login_user(data: LoginUser, ctx: RequestContext = Depends(get_context)):
+    uc = AuthService(ctx.db)
+    return await uc.login_user(data)
 
 
 def me():
