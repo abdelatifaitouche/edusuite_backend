@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
-
-from src.features.auth.schemas.user import CreateUser, LoginUser, BaseUser
+from src.db.usecases.base_usecase import BaseUC
+from src.core.pagination import Pagination
+from src.features.auth.schemas.user import CreateUser, LoginUser, UserResponse
 from src.features.auth.security.password import PasswordManager
 from src.features.auth.repository.auth_repository import AuthRepository
 from src.features.auth.models.users import UserModel
@@ -11,19 +11,32 @@ from src.features.auth.security.jwt import JwtManager
 from src.features.auth.schemas.jwt_payload import JwtPayload
 
 
-class AuthService:
-    def __init__(self, db: AsyncSession):
-        self.db: AsyncSession = db
+from src.features.auth.domain.user import User as UserEntity
+
+
+class AuthUC(BaseUC[UserEntity, CreateUser, LoginUser]):
+    def __init__(self, repo: AuthRepository):
+        super().__init__(repo=repo)
+        self.repo: AuthRepository = repo
         self.pwd_manager: PasswordManager = PasswordManager()
-        self.repo: AuthRepository = AuthRepository(self.db)
         self.jwt_manager: JwtManager = JwtManager()
 
-    async def list_users(self, ctx: RequestContext):
-        users: list[UserModel] = await self.repo.list(ctx.pagination)
+    """
+    async def list_users(self, pagination: Pagination):
+        users: list[UserEntity] = await self.repo.list(pagination)
         return [BaseUser.model_validate(user) for user in users]
+    """
 
-    async def create_user(self, data: CreateUser) -> BaseUser:
-        user: UserModel | None = await self.repo.get_by_email(data.email)
+    def _to_entity(self, data: CreateUser) -> UserEntity:
+        user: UserEntity = UserEntity(
+            email=data.email,
+            role=data.role,
+            hashed_password=data.password,
+        )
+        return user
+
+    async def create_user(self, data: CreateUser) -> UserEntity:
+        user: UserEntity | None = await self.repo.get_by_email(data.email)
 
         if user:
             raise UserAlreadyExistsError(data.email)
@@ -34,19 +47,22 @@ class AuthService:
             email=data.email, password=hashed_password, role=data.role
         )
 
-        await self.repo.save(user_model)
+        user_entity: UserEntity = self._to_entity(data)
 
-        await self.db.commit()
+        user_entity = await self.repo.save(user_entity)
 
-        return BaseUser.model_validate(user_model)
+        return user_entity
 
     async def login_user(self, data: LoginUser) -> str:
-        user: UserModel | None = await self.repo.get_by_email(data.email)
 
-        if user is None:
+        user: UserEntity | None = await self.repo.get_by_email(data.email)
+
+        if not user:
             raise WrongCredentialsError()
 
-        if not self.pwd_manager.verify_password(data.password, user.password):
+        if not user.hashed_password or not self.pwd_manager.verify_password(
+            data.password, user.hashed_password
+        ):
             raise WrongCredentialsError()
 
         access_token: str = self.jwt_manager.generate_token(

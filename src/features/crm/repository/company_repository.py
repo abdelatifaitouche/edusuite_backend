@@ -8,9 +8,9 @@ from uuid import UUID
 from src.db.repositories.base_repository import BaseRepository
 
 
-class CompanyRepository(BaseRepository[CompanyModel]):
+class CompanyRepository(BaseRepository[CompanyModel, CompanyModel]):
     def __init__(self, db: AsyncSession):
-        super().__init__(db, CompanyModel)
+        super().__init__(db=db)
 
     """
     async def list(selfpagination: Pagination) -> list[CompanyRead]:

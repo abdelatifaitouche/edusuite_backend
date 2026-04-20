@@ -8,7 +8,7 @@ class LoginUser(BaseModel):
     password: str
 
 
-class BaseUser(BaseModel):
+class UserResponse(BaseModel):
     id: UUID
     email: str
     role: Role

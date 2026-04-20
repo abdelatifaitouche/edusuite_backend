@@ -7,22 +7,25 @@ from src.core.pagination import Pagination
 from src.core.request_context import RequestContext
 
 
-class CompanyUseCases:
-    def __init__(self, ctx: RequestContext):
-        self.ctx = ctx
-        self.repo: CompanyRepository = CompanyRepository(db=self.ctx.db)
+class CompanyUC:
+    def __init__(self):
+        self.repo: CompanyRepository = CompanyRepository()
 
-    async def list(self, pagination: Pagination) -> list[CompanyRead]:
-        models: list[CompanyModel] = await self.repo.list(pagination)
+    async def list(self, ctx: RequestContext) -> list[CompanyRead]:
+        models: list[CompanyModel] = await self.repo.list(ctx)
         return [CompanyRead.model_validate(model) for model in models]
 
-    async def create(self, data: CompanyCreate) -> CompanyRead:
-        company: CompanyRead = await self.repo.save(data)
-        await self.ctx.db.commit()
-        return company
+    async def create(self, ctx: RequestContext, data: CompanyCreate) -> CompanyRead:
 
-    async def get_by_id(self, entity_id: str) -> CompanyRead:
-        return await self.repo.get_by_id(self.ctx.db, UUID(entity_id))
+        company: CompanyModel = CompanyModel(**data.model_dump())
+
+        company: CompanyModel = await self.repo.save(ctx, company)
+        return CompanyRead.model_validate(company)
+
+    async def get_by_id(self, ctx: RequestContext, entity_id: str) -> CompanyRead:
+        companyModel: CompanyModel = await self.repo.get_by_id(ctx, UUID(entity_id))
+
+        return CompanyRead.model_validate(companyModel)
 
     async def delete(self, entity_id: str):
         result = await self.repo.delete(self.ctx.db, UUID(entity_id))
