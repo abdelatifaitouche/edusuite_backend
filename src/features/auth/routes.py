@@ -1,12 +1,19 @@
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.features.auth.schemas.user import UserResponse, LoginUser, CreateUser
+from src.features.auth.schemas.user import (
+    UserResponse,
+    LoginUser,
+    CreateUser,
+    UserUpdate,
+)
 from src.db.session import get_db
 from src.features.auth.usecases.auth_service import AuthUC
 from src.api.dependencies.context import get_context, get_auth_context
 from src.core.request_context import RequestContext
 from src.features.auth.repository.auth_repository import AuthRepository
+
+from uuid import UUID
 
 router = APIRouter(prefix="/auth")
 
@@ -50,6 +57,13 @@ async def login_user(
     return {"message": "Logged In"}
 
 
+@router.get("/user/{user_id}")
+async def get_user_by_id(user_id: str, uc: AuthUC = Depends(get_service)):
+    user = await uc.get_by_id(UUID(user_id))
+
+    return UserResponse.model_validate(user)
+
+
 @router.get("/me")
 async def me(ctx: RequestContext = Depends(get_auth_context)):
     return ctx.user
@@ -73,12 +87,19 @@ async def list_users(
     return [UserResponse.model_validate(user) for user in users]
 
 
-def delete_user():
-    return
+@router.delete("/user/{user_id}")
+async def delete_user(user_id: str, uc: AuthUC = Depends(get_service)):
+    return await uc.delete(UUID(user_id))
 
 
-def update_user():
-    return
+@router.patch("/user/{user_id}/")
+async def update_user(
+    user_id: str,
+    data: UserUpdate,
+    uc: AuthUC = Depends(get_service),
+):
+    user = await uc.update(UUID(user_id), data)
+    return UserResponse.model_validate(user)
 
 
 def block_user():

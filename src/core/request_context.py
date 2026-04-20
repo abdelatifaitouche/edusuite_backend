@@ -4,11 +4,8 @@ from src.features.auth.schemas.jwt_payload import JwtPayload
 
 
 class RequestContext:
-    def __init__(
-        self, db: AsyncSession, pagination: Pagination, user: JwtPayload | None = None
-    ):
+    def __init__(self, pagination: Pagination, user: JwtPayload | None = None):
         self.user: JwtPayload | None = user
-        self.db: AsyncSession = db
         self.pagination: Pagination = pagination
 
     def is_authenticated(self) -> bool:

@@ -24,8 +24,17 @@ class AuthRepository(BaseRepository[UserEntity, UserModel]):
 
     def _to_orm(self, entity: UserEntity) -> UserModel:
         return UserModel(
-            email=entity.email, password=entity.hashed_password, role=entity.role
+            id=entity.id,
+            email=entity.email,
+            password=entity.hashed_password,
+            role=entity.role,
         )
+
+    async def _orm_update(self, orm: UserModel, entity: UserEntity) -> UserModel:
+        orm.email = entity.email
+        orm.role = entity.role
+        orm.is_active = entity.is_active
+        return orm
 
     async def get_by_email(self, email: str) -> UserEntity | None:
         stmt = select(UserModel).where(UserModel.email == email)

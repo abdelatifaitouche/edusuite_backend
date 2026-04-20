@@ -12,6 +12,7 @@ class User:
 
     id: UUID | None = None
     created_at: datetime | None = None
+    is_active: bool | None = None
 
     def is_admin(self) -> bool:
         return self.role == Role.ADMIN

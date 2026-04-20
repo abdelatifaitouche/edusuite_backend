@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from uuid import UUID
 from src.core.request_context import RequestContext
-
+from src.core.exception import NotFoundError
 from abc import ABC
 
 T = TypeVar("T")
@@ -52,21 +52,37 @@ class BaseRepository(ABC, Generic[T, M]):
         return [self._to_domain(row) for row in data]
 
     async def save(self, data: T) -> T:
-        orm = self._to_orm(data)
+        if data.id is None:
+            orm = self._to_orm(data)
+            self.db.add(orm)
+        else:
+            orm = await self.db.get(self.model, data.id)
+            if not orm:
+                raise NotFoundError(
+                    message=f"{self.model.__name__} with ID {data.id} is not found"
+                )
+            orm = await self._orm_update(orm, data)
 
-        self.db.add(orm)
         await self.db.flush()
         return self._to_domain(orm)
 
     async def get_by_id(self, entity_id: UUID) -> T | None:
-
         orm = await self.db.get(self.model, entity_id)
-
         return self._to_domain(orm) if orm else None
 
-    async def update(self):
-        return
+    async def _orm_update(self, orm: M, entity: T) -> M:
+        raise NotImplementedError()
 
-    async def delete(self, entity: T):
-        orm = self._to_orm(entity)
-        return await self.db.delete(orm)
+    async def delete(self, entity_id: UUID):
+
+        stmt = delete(self.model).where(self.model.id == entity_id)
+
+        result = await self.db.execute(stmt)
+        await self.db.flush()
+
+        if result.rowcount <= 0:
+            raise NotFoundError(
+                message=f"{self.model.__name__} with id {entity_id} not found"
+            )
+
+        return result.rowcount > 0

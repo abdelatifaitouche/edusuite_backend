@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from typing import TypeVar, Generic
 from uuid import UUID
 from src.core.pagination import Pagination
@@ -7,9 +9,8 @@ from src.core.exception import NotFoundError
 
 T = TypeVar("T")  # Domain Object Dataclass
 C = TypeVar("C")  # Create Schemas For Pydantic
-U = TypeVar("U")
-M = TypeVar("M")
-from abc import ABC
+U = TypeVar("U")  # Update Schema for Pydantic
+M = TypeVar("M")  # Orm Model Type
 
 
 class BaseUC(Generic[T, C, U]):
@@ -33,6 +34,15 @@ class BaseUC(Generic[T, C, U]):
         entity: T = self._to_entity(data)
         return await self.repo.save(entity)
 
+    async def update(self, entity_id: UUID, data: U) -> T:
+        entity: T = await self.get_by_id(entity_id)
+        updated_entity: T = await self._apply_update(entity, data)
+        return await self.repo.save(updated_entity)
+
+    async def delete(self, entity_id: UUID):
+        return await self.repo.delete(entity_id)
+
+    @abstractmethod
     def _to_entity(self, data: C) -> T:
         raise NotImplementedError()
 

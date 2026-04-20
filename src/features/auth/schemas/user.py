@@ -21,3 +21,9 @@ class CreateUser(BaseModel):
     password: str = Field(min_length=8)
 
     role: Role
+
+
+class UserUpdate(BaseModel):
+    email: str | None = None
+    role: Role | None = None
+    is_active: bool | None = None

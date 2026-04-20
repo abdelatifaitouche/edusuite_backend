@@ -13,7 +13,6 @@ _jwt_manager = JwtManager()
 
 async def get_auth_context(
     access_token: str | None = Cookie(None),
-    db: AsyncSession = Depends(get_db),
     pagination: Pagination = Depends(),
 ):
 
@@ -32,13 +31,10 @@ async def get_auth_context(
         )
 
     return RequestContext(
-        db=db,
         pagination=pagination,
         user=payload,
     )
 
 
-async def get_context(
-    db: AsyncSession = Depends(get_db), pagination: Pagination = Depends()
-) -> RequestContext:
-    return RequestContext(db, pagination)
+async def get_context(pagination: Pagination = Depends()) -> RequestContext:
+    return RequestContext(pagination)
