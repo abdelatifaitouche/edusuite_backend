@@ -3,6 +3,7 @@ from src.api.router import api_router
 from src.db.session import engine
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+import src.db.models
 
 
 @asynccontextmanager

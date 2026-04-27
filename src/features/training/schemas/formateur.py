@@ -21,6 +21,10 @@ class FormateurRead(BaseModel):
 class FormateurCreate(BaseModel):
     nom: str
     prenom: str
-    email: str | None = None
-    telephone: str | None = None
-    specialite: str | None = None
+    email: str
+    telephone: str
+    specialite: str
+
+
+class FormateurUpdate(BaseModel):
+    status: FormateurStatus | None = None

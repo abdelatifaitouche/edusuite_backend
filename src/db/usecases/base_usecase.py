@@ -27,8 +27,8 @@ class BaseUC(Generic[T, C, U]):
 
         return result
 
-    async def list(self, pagination: Pagination) -> list[T]:
-        return await self.repo.list(pagination)
+    async def list(self, pagination: Pagination, filters=None) -> list[T]:
+        return await self.repo.list(pagination, filters)
 
     async def create(self, data: C) -> T:
         entity: T = self._to_entity(data)

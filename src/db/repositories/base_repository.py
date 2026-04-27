@@ -22,7 +22,7 @@ class BaseRepository(ABC, Generic[T, M]):
     def _apply_pagination(self, stmt, pagination: Pagination):
         return stmt.offset(pagination.offset).limit(pagination.page_size)
 
-    def _apply_filters(self, stmt):
+    def _apply_filters(self, stmt, filters):
         """
         gets base filters
         """
@@ -44,7 +44,7 @@ class BaseRepository(ABC, Generic[T, M]):
         stmt = select(self.model)
 
         # apply filters
-        stmt = self._apply_filters(stmt)
+        stmt = self._apply_filters(stmt, filters)
         # apply pagination
         stmt = self._apply_pagination(stmt, pagination)
         results = await self.db.execute(stmt)
