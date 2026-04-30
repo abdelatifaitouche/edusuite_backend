@@ -40,6 +40,9 @@ class BaseRepository(ABC, Generic[T, M]):
         """
         raise NotImplementedError()
 
+    def _load_options(self):
+        return []
+
     async def list(self, pagination: Pagination, filters=None) -> list[T]:
         stmt = select(self.model)
 
@@ -47,16 +50,27 @@ class BaseRepository(ABC, Generic[T, M]):
         stmt = self._apply_filters(stmt, filters)
         # apply pagination
         stmt = self._apply_pagination(stmt, pagination)
+        stmt = stmt.options(*self._load_options())
         results = await self.db.execute(stmt)
         data: list[M] = results.scalars().all()
         return [self._to_domain(row) for row in data]
 
     async def save(self, data: T) -> T:
-        if data.id is None:
+
+        if getattr(data, "id", None) is None:
             orm = self._to_orm(data)
             self.db.add(orm)
         else:
-            orm = await self.db.get(self.model, data.id)
+            stmt = (
+                select(self.model)
+                .where(self.model.id == data.id)
+                .options(*self._load_options())
+            )
+
+            result = await self.db.execute(stmt)
+
+            orm = result.scalar_one_or_none()
+
             if not orm:
                 raise NotFoundError(
                     message=f"{self.model.__name__} with ID {data.id} is not found"
@@ -64,10 +78,21 @@ class BaseRepository(ABC, Generic[T, M]):
             orm = await self._orm_update(orm, data)
 
         await self.db.flush()
+        await self.db.refresh(orm)
         return self._to_domain(orm)
 
     async def get_by_id(self, entity_id: UUID) -> T | None:
-        orm = await self.db.get(self.model, entity_id)
+
+        stmt = (
+            select(self.model)
+            .where(self.model.id == entity_id)
+            .options(*self._load_options())
+        )
+
+        result = await self.db.execute(stmt)
+
+        orm = result.scalar_one_or_none()
+
         return self._to_domain(orm) if orm else None
 
     async def _orm_update(self, orm: M, entity: T) -> M:

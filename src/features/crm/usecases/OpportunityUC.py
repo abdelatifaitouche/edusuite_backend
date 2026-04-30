@@ -5,8 +5,12 @@ from src.features.crm.schemas.opportunity import (
     UpdateOpportunity,
 )
 from uuid import UUID
+from typing import override
 from src.features.crm.domaine.opportunity import Opportunity as OpportunityEntity
 from src.features.crm.enums.opportunity_states import OpportunityStates
+from src.core.pagination import Pagination
+from src.features.crm.repository.opportunity_repo import OpportunityRepo
+from src.core.exception import NotFoundError
 
 
 class OpportunityUC(BaseUC[OpportunityEntity, CreateOpportunity, UpdateOpportunity]):
@@ -36,9 +40,9 @@ class OpportunityUC(BaseUC[OpportunityEntity, CreateOpportunity, UpdateOpportuni
         OpportunityStates.LOST,
     ]
 
-    def __init__(self, repo):
+    def __init__(self, repo: OpportunityRepo):
         super().__init__(repo=repo)
-        self.repo = repo
+        self.repo: OpportunityRepo = repo
 
     def _to_entity(self, data: CreateOpportunity) -> OpportunityEntity:
         return OpportunityEntity(
@@ -48,6 +52,20 @@ class OpportunityUC(BaseUC[OpportunityEntity, CreateOpportunity, UpdateOpportuni
             estimated_value=data.estimated_value,
             status=data.status,
         )
+
+    async def get_by_id(self, entity_id: UUID) -> OpportunityEntity:
+
+        result = await self.repo.get_by_id(entity_id)
+
+        if not result:
+            raise NotFoundError(message=f"With ID {entity_id} was not Found")
+
+        return result
+
+    async def list(
+        self, pagination: Pagination, filters=None
+    ) -> list[OpportunityEntity]:
+        return await self.repo.list_opportunities(pagination, filters)
 
     async def create(self, data: CreateOpportunity) -> OpportunityEntity:
         if data.probability <= 0 or data.probability > 1:
@@ -91,6 +109,10 @@ class OpportunityUC(BaseUC[OpportunityEntity, CreateOpportunity, UpdateOpportuni
             raise Exception("No status")
 
         next_stage: OpportunityStates | None = self.get_next_stage(entity.status)
+
+        if next_stage == OpportunityStates.PROPOSAL:
+            if entity.session_plan is None:
+                raise Exception("A session Plan needs to be created first")
 
         if not next_stage:
             raise Exception(

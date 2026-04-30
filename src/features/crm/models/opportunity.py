@@ -2,9 +2,9 @@ from datetime import datetime, date
 
 from src.db.base import Base
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Enum, Date, Integer, Numeric
-
+from typing import Optional
 
 from src.features.crm.enums.opportunity_states import OpportunityStates
 
@@ -26,3 +26,7 @@ class Opportunity(Base):
     probability: Mapped[int] = mapped_column(Integer, nullable=False)  # 0–100
 
     expected_close_date: Mapped[date] = mapped_column(Date, nullable=False)
+
+    session_plan: Mapped[Optional["SessionPlan"]] = relationship(
+        back_populates="opportunity", uselist=False, cascade="all, delete-orphan"
+    )

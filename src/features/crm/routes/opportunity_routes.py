@@ -75,3 +75,27 @@ async def mark_as_won(opportunity_id: str, uc: OpportunityUC = Depends(get_servi
 async def mark_as_lost(opportunity_id: str, uc: OpportunityUC = Depends(get_service)):
     op = await uc.mark_as_lost(UUID(opportunity_id))
     return ReadOpporunity.model_validate(op)
+
+
+from src.features.crm.repository.session_plan_repo import SessionPlanRepo
+from src.features.crm.usecases.session_plan_uc import SessionPlanUC
+from src.features.crm.schemas.session_plan import CreateSessionPlan, ReadSessionPlan
+
+
+def get_session_repo(db: AsyncSession = Depends(get_db)):
+    return SessionPlanRepo(db)
+
+
+def get_session_uc(repo: SessionPlanRepo = Depends(get_session_repo)):
+    return SessionPlanUC(repo)
+
+
+@router.post("/{opportunity_id}/session_plan/")
+async def create_session_plan(
+    opportunity_id: str,
+    data: CreateSessionPlan,
+    uc: SessionPlanUC = Depends(get_session_uc),
+):
+    session_plan = await uc.create_session_plan(opportunity_id, data)
+
+    return ReadSessionPlan.model_validate(session_plan)

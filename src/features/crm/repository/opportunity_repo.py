@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from uuid import UUID
 from src.db.repositories.base_repository import BaseRepository
 from src.features.crm.models.opportunity import Opportunity as OpportunityDB
 from src.features.crm.domaine.opportunity import Opportunity as OpportunityEntity
@@ -17,7 +19,57 @@ class OpportunityRepo(BaseRepository[OpportunityEntity, OpportunityDB]):
             stmt = stmt.where(self.model.status == filters.status)
         return stmt
 
+    def _load_options(self):
+        return [selectinload(self.model.session_plan)]
+
+    async def list_opportunities(self, pagination, filters) -> list[OpportunityEntity]:
+        stmt = select(self.model)
+
+        stmt = stmt.options(selectinload(self.model.session_plan))
+
+        stmt = self._apply_filters(stmt, filters)
+        stmt = self._apply_pagination(stmt, pagination)
+
+        results = await self.db.execute(stmt)
+
+        data = results.scalars()
+
+        return [self._to_domain(d) for d in data]
+
+    async def get_by_id(self, entity_id: UUID) -> OpportunityEntity | None:
+
+        stmt = (
+            select(self.model)
+            .options(selectinload(self.model.session_plan))
+            .where(self.model.id == entity_id)
+        )
+
+        result = await self.db.execute(stmt)
+
+        orm = result.scalar()
+
+        if not orm:
+            raise Exception("database exception, cannot find model")
+
+        return self._to_domain(orm) if orm else None
+
     def _to_domain(self, orm: OpportunityDB) -> OpportunityEntity:
+        from src.features.crm.domaine.session_plan import SessionPlan
+
+        session_plan = None
+        if orm.session_plan:
+            session_plan = SessionPlan(
+                id=orm.session_plan.id,
+                expected_students=orm.session_plan.expected_students,
+                location_type=orm.session_plan.location_type,
+                venue_cost=orm.session_plan.venue_cost,
+                cost_per_student=orm.session_plan.cost_per_student,
+                status=orm.session_plan.status,
+                opportunity_id=orm.session_plan.opportunity_id,
+                created_at=orm.session_plan.created_at,
+                updated_at=orm.session_plan.updated_at,
+            )
+
         return OpportunityEntity(
             id=orm.id,
             title=orm.title,
@@ -25,6 +77,7 @@ class OpportunityRepo(BaseRepository[OpportunityEntity, OpportunityDB]):
             estimated_value=orm.estimated_value,
             probability=orm.probability,
             expected_close_date=orm.expected_close_date,
+            session_plan=session_plan,
             created_at=orm.created_at,
             updated_at=orm.updated_at,
         )
