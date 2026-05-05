@@ -24,6 +24,9 @@ class FormateurCreate(BaseModel):
     email: str
     telephone: str
     specialite: str
+    year_of_experience: int | None = None
+    ville: str | None = None
+    daily_rate: float | None = None
 
 
 class FormateurUpdate(BaseModel):

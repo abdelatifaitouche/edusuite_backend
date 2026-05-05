@@ -1,7 +1,7 @@
 from src.db.base import Base
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Text, String, Boolean, Enum
+from sqlalchemy import Text, String, Boolean, Enum, Numeric, Integer
 from src.features.training.enums.formateur_enums import NiveauExpertise, FormateurStatus
 from src.features.training.enums.formation_enums import DomainFormation
 
@@ -30,6 +30,9 @@ class Formateur(Base):
         Enum(FormateurStatus),
         default=FormateurStatus.ACTIVE,
     )
+    daily_rate: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
+    ville: Mapped[str] = mapped_column(String, nullable=True)
+    year_of_experience: Mapped[int] = mapped_column(Integer, nullable=True)
     # relationships
     formations: Mapped[List["FormateurFormation"]] = relationship(
         "FormateurFormation", back_populates="formateur", cascade="all, delete-orphan"

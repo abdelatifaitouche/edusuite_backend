@@ -18,6 +18,14 @@ class ReadSessionPlan(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class UpdateSessionPlan(BaseModel):
+    status: SessionPlanStatus | None = None
+    expected_students: int | None = None
+    location_type: LocationType | None = None
+    venue_cost: float | None = None
+    cost_per_student: float | None = None
+
+
 class CreateSessionPlan(BaseModel):
     status: SessionPlanStatus = SessionPlanStatus.DRAFT
     expected_students: int

@@ -20,6 +20,9 @@ class FormateurUC(BaseUC[FormateurEntity, FormateurCreate, FormateurUpdate]):
             nom=data.nom,
             specialite=data.specialite,
             telephone=data.telephone,
+            year_of_experience=data.year_of_experience,
+            ville=data.ville,
+            daily_rate=data.daily_rate,
         )
 
     async def block_trainer(self, trainer_id: UUID):

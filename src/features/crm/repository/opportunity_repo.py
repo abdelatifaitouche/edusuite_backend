@@ -56,20 +56,6 @@ class OpportunityRepo(BaseRepository[OpportunityEntity, OpportunityDB]):
     def _to_domain(self, orm: OpportunityDB) -> OpportunityEntity:
         from src.features.crm.domaine.session_plan import SessionPlan
 
-        session_plan = None
-        if orm.session_plan:
-            session_plan = SessionPlan(
-                id=orm.session_plan.id,
-                expected_students=orm.session_plan.expected_students,
-                location_type=orm.session_plan.location_type,
-                venue_cost=orm.session_plan.venue_cost,
-                cost_per_student=orm.session_plan.cost_per_student,
-                status=orm.session_plan.status,
-                opportunity_id=orm.session_plan.opportunity_id,
-                created_at=orm.session_plan.created_at,
-                updated_at=orm.session_plan.updated_at,
-            )
-
         return OpportunityEntity(
             id=orm.id,
             title=orm.title,
@@ -77,7 +63,7 @@ class OpportunityRepo(BaseRepository[OpportunityEntity, OpportunityDB]):
             estimated_value=orm.estimated_value,
             probability=orm.probability,
             expected_close_date=orm.expected_close_date,
-            session_plan=session_plan,
+            session_plan_id=orm.session_plan.id if orm.session_plan else None,
             created_at=orm.created_at,
             updated_at=orm.updated_at,
         )

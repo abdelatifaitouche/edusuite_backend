@@ -31,6 +31,9 @@ class FormateurRepo(BaseRepository[FormateurEntity, FormateurDB]):
             cv_url=orm.cv_url,
             specialite=orm.specialite,
             bio=orm.bio,
+            year_of_experience=orm.year_of_experience,
+            ville=orm.ville,
+            daily_rate=orm.daily_rate,
         )
 
     def _to_orm(self, entity: FormateurEntity) -> FormateurDB:
@@ -45,6 +48,9 @@ class FormateurRepo(BaseRepository[FormateurEntity, FormateurDB]):
             status=entity.status,
             cv_url=entity.cv_url,
             bio=entity.bio,
+            daily_rate=entity.daily_rate,
+            year_of_experience=entity.year_of_experience,
+            ville=entity.ville,
         )
 
     async def _orm_update(

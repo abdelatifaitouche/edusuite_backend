@@ -16,6 +16,9 @@ class Formateur:
     prenom: str
     nom: str
     email: str
+    daily_rate: float | None = None
+    ville: str | None = None
+    year_of_experience: int | None = None
     telephone: str | None = None
     specialite: str | None = None
     niveau_expertise: str | None = None

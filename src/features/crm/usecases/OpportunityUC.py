@@ -111,7 +111,7 @@ class OpportunityUC(BaseUC[OpportunityEntity, CreateOpportunity, UpdateOpportuni
         next_stage: OpportunityStates | None = self.get_next_stage(entity.status)
 
         if next_stage == OpportunityStates.PROPOSAL:
-            if entity.session_plan is None:
+            if entity.session_plan_id is None:
                 raise Exception("A session Plan needs to be created first")
 
         if not next_stage:

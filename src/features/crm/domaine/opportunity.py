@@ -14,7 +14,7 @@ class Opportunity:
     probability: float
     expected_close_date: date
 
-    session_plan: Optional[SessionPlan] = None
+    session_plan_id: UUID | None = None
 
     created_at: datetime | None = None
     updated_at: datetime | None = None

@@ -47,6 +47,14 @@ async def get_opportunity(
     uc: OpportunityUC = Depends(get_service),
 ):
     op = await uc.get_by_id(UUID(opportunity_id))
+
+    if op.session_plan_id:
+        from src.features.crm.repository.session_plan_repo import SessionPlanRepo
+
+        sp_repo = SessionPlanRepo(uc.repo.db)
+
+        sp = await sp_repo.get_by_id(op.session_plan_id)
+
     return ReadOpporunity.model_validate(op)
 
 
@@ -79,7 +87,11 @@ async def mark_as_lost(opportunity_id: str, uc: OpportunityUC = Depends(get_serv
 
 from src.features.crm.repository.session_plan_repo import SessionPlanRepo
 from src.features.crm.usecases.session_plan_uc import SessionPlanUC
-from src.features.crm.schemas.session_plan import CreateSessionPlan, ReadSessionPlan
+from src.features.crm.schemas.session_plan import (
+    CreateSessionPlan,
+    ReadSessionPlan,
+    UpdateSessionPlan,
+)
 
 
 def get_session_repo(db: AsyncSession = Depends(get_db)):
@@ -99,3 +111,32 @@ async def create_session_plan(
     session_plan = await uc.create_session_plan(opportunity_id, data)
 
     return ReadSessionPlan.model_validate(session_plan)
+
+
+@router.get("/{opportunity_id}/session_plan")
+async def get_opportunity_session_plan(
+    opportunity_id: str,
+    uc: SessionPlanUC = Depends(get_session_uc),
+):
+    session_plan = await uc.get_session_plan(opportunity_id)
+
+    return ReadSessionPlan.model_validate(session_plan)
+
+
+@router.patch("/session_plans/{session_plan}/")
+async def update_session_plan(
+    session_plan: str,
+    data: UpdateSessionPlan,
+    uc: SessionPlanUC = Depends(get_session_uc),
+):
+    updated = await uc.update(UUID(session_plan), data)
+    return ReadSessionPlan.model_validate(updated)
+
+
+@router.patch("/session_plans/{session_plan}/submit/")
+async def submit_session_plan(
+    session_plan: str,
+    uc: SessionPlanUC = Depends(get_session_uc),
+):
+    updated = await uc.submit_session_plan(UUID(session_plan))
+    return ReadSessionPlan.model_validate(updated)

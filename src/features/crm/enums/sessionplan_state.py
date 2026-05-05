@@ -3,7 +3,9 @@ from enum import StrEnum
 
 class SessionPlanStatus(StrEnum):
     DRAFT = "DRAFT"
-    CONFIRMED = "CONFIRMED"
+    APPROVED = "APPROVED"
+    SUBMITED = "SUBMITED"
+    REJECTED = "REJECTED"
     LOCKED = "LOCKED"
 
 
