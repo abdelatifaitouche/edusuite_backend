@@ -4,13 +4,17 @@ from src.features.training.enums.formation_enums import (
     NiveauFormation,
     DomainFormation,
 )
-
+from src.features.training.domain.module import Module
 from dataclasses import dataclass
 from uuid import UUID
 
 
 @dataclass
 class Formation:
+    """
+    TOO MUCH DATA PACKED HERE
+    """
+
     titre: str
     code: str
     duree_jours: int

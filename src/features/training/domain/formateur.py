@@ -5,10 +5,19 @@ from src.features.training.enums.formateur_enums import FormateurStatus
 
 @dataclass
 class BaseFormateur:
+    id: UUID
     nom: str
     prenom: str
     email: str
-    telephone: str
+    telephone: str | None = None
+    status: FormateurStatus | None = None
+    specialite: str | None = None
+
+
+@dataclass
+class ReadCourseMini:
+    id: UUID
+    titre: str
 
 
 @dataclass
@@ -25,5 +34,5 @@ class Formateur:
     bio: str | None = None
     status: FormateurStatus | None = None
     cv_url: str | None = None
-
+    courses: list[ReadCourseMini] | None = None
     id: UUID | None = None

@@ -1,9 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from uuid import UUID
 
 from src.db.repositories.base_repository import BaseRepository
 from src.features.training.models.formation import Formation as FormationDB
 from src.features.training.domain.formation import Formation as FormationEntity
+from src.features.training.domain.module import Module as ModuleEntity
 
 
 class FormationRepo(BaseRepository[FormationEntity, FormationDB]):
@@ -11,6 +14,24 @@ class FormationRepo(BaseRepository[FormationEntity, FormationDB]):
 
     def __init__(self, db: AsyncSession):
         super().__init__(db)
+
+    async def get_formation_details(self, entity_id: UUID):
+
+        stmt = (
+            select(FormationDB)
+            .where(FormationDB.id == entity_id)
+            .options(selectinload(FormationDB.modules))
+        )
+
+        result = await self.db.execute(stmt)
+        formation = result.scalar_one_or_none()
+
+        if not formation:
+            return
+
+        modules = [ModuleEntity.to_domain(module) for module in formation.modules]
+
+        return
 
     def _to_domain(self, orm: FormationDB) -> FormationEntity:
         return FormationEntity(

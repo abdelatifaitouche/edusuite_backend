@@ -53,3 +53,29 @@ async def delete_course(
 ):
     status = await uc.delete(UUID(course_id))
     return status
+
+
+from src.features.training.repositories.module_repo import ModuleRepository
+from src.features.training.usecases.moduleUC import ModuleUC
+from src.features.training.schemas.module import ModuleCreate, ModuleRead
+
+
+def get_module_repo(db: AsyncSession = Depends(get_db)):
+    return ModuleRepository(db)
+
+
+def get_module_service(
+    repo: ModuleRepository = Depends(get_module_repo),
+):
+    return ModuleUC(repo)
+
+
+@router.post("/{course_id}/modules/")
+async def add_module(
+    course_id: str,
+    data: ModuleCreate,
+    uc: ModuleUC = Depends(get_module_service),
+):
+
+    module = await uc.create(data)
+    return ModuleRead.model_validate(module)
