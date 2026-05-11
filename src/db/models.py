@@ -13,3 +13,4 @@ from src.features.training.models.formateur import Formateur
 from src.features.training.models.formation import Formation
 from src.features.training.models.formation_formateur import FormateurFormation
 from src.features.training.models.modules import Module
+from src.features.training.models.salle import Salle
