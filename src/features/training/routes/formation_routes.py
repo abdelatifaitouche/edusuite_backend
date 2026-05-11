@@ -6,7 +6,12 @@ from src.db.session import get_db
 from src.core.pagination import Pagination
 from src.features.training.repositories.formation_repo import FormationRepo
 from src.features.training.usecases.formationUC import FormationUC
-from src.features.training.schemas.formation import CreateFormation, ReadFormation
+from src.features.training.schemas.formation import (
+    CreateFormation,
+    ReadFormation,
+    FormationCompact,
+)
+from src.features.training.filters.formation_filters import FormationFilters
 
 router = APIRouter(prefix="/courses")
 
@@ -31,10 +36,11 @@ async def create_course(
 @router.get("")
 async def list_courses(
     pagination: Pagination = Depends(),
+    filters: FormationFilters = Depends(),
     uc: FormationUC = Depends(get_service),
 ):
-    courses = await uc.list(pagination)
-    return [ReadFormation.model_validate(course) for course in courses]
+    courses = await uc.list(pagination, filters)
+    return [FormationCompact.model_validate(course) for course in courses]
 
 
 @router.get("/{course_id}")

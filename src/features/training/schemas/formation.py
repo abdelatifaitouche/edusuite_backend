@@ -7,6 +7,18 @@ from src.features.training.enums.formation_enums import (
 )
 
 from uuid import UUID
+from src.features.training.schemas.module import ModuleRead
+
+
+class FormationCompact(BaseModel):
+    id: UUID
+    type: TypeFormation
+    niveau: NiveauFormation
+    status: StatusFormation
+    titre: str
+    domaine: DomainFormation
+
+    model_config = {"from_attributes": True}
 
 
 class ReadFormation(BaseModel):
@@ -22,7 +34,7 @@ class ReadFormation(BaseModel):
     prix: float
     certifiante: bool
     status: StatusFormation | None = None
-
+    modules: list[ModuleRead] | None = None
     model_config = {"from_attributes": True}
 
 
