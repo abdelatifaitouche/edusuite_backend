@@ -14,5 +14,9 @@ class Salle(Base):
     )
     size: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
 
+    sessions = relationship(
+        "Session", back_populates="salle", cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"Salle<{self.name}> --- Status {self.status} --- size {self.size}"

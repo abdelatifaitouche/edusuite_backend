@@ -38,6 +38,10 @@ class Formateur(Base):
         "FormateurFormation", back_populates="formateur", cascade="all, delete-orphan"
     )
 
+    sessions = relationship(
+        "Session", back_populates="formateur", cascade="all, delete-orphan"
+    )
+
     @property
     def full_name(self) -> str:
         return f"{self.prenom} {self.nom}"

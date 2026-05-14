@@ -14,3 +14,6 @@ from src.features.training.models.formation import Formation
 from src.features.training.models.formation_formateur import FormateurFormation
 from src.features.training.models.modules import Module
 from src.features.training.models.salle import Salle
+from src.features.training.models.session import Session
+from src.features.training.models.recurrence_rule import RecurrenceRule
+from src.features.training.models.session_occurrence import SessionOccurrence

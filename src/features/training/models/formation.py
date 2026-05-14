@@ -50,6 +50,10 @@ class Formation(Base):
         "Objectif", back_populates="formation", cascade="all, delete-orphan"
     )
 
+    sessions = relationship(
+        "Session", back_populates="formation", cascade="all, delete-orphan"
+    )
+
     @property
     def duree_totale_heures(self) -> int:
         return self.duree_jours * self.heures_par_jour
