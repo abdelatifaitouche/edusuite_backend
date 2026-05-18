@@ -14,3 +14,10 @@ class SessionOccurence:
     notes: str
 
     id: UUID | None = None
+
+
+@dataclass
+class ConflictResult:
+    conflicting_dates: list[date]
+    formateur_conflict: bool
+    salle_conflict: bool
