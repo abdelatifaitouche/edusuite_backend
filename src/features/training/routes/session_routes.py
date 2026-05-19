@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.session import get_db
 
 
-from src.features.training.schemas.session import CreateSession
+from src.features.training.schemas.session import CreateSession, ReadSession
 from src.features.training.orchestrators.session_orchestrator import SessionOrchestrator
 from src.features.training.usecases.sessionUC import SessionUC
 from src.features.training.repositories.session_repo import SessionRepository
@@ -11,8 +11,18 @@ from src.features.training.repositories.reccurrence_repo import ReccurenceReposi
 from src.features.training.usecases.reccurrence_ruleUC import RRuleUC
 from src.features.training.repositories.occurrence_repo import OccurrenceRepository
 from src.core.exception import SessionConflictError
+from src.core.filters import BaseFilters
+from src.core.pagination import Pagination
 
 router = APIRouter(prefix="/sessions")
+
+
+def get_repo(db: AsyncSession = Depends(get_db)):
+    return SessionRepository(db)
+
+
+def get_service(repo: SessionRepository = Depends(get_repo)):
+    return SessionUC(repo)
 
 
 def get_orchestrator(db: AsyncSession = Depends(get_db)):
@@ -30,3 +40,13 @@ async def create_session(
 ):
     session = await orch.create_session(data)
     return session
+
+
+@router.get("/")
+async def list_sessions(
+    pagination: Pagination = Depends(),
+    filters: BaseFilters = Depends(),
+    uc: SessionUC = Depends(get_service),
+):
+    results = await uc.list(pagination, filters)
+    return [ReadSession.model_validate(ses) for ses in results]

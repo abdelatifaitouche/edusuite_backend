@@ -1,5 +1,14 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import UUID, String, Integer, ForeignKey, Enum, DateTime
+from sqlalchemy import (
+    UUID,
+    String,
+    Integer,
+    ForeignKey,
+    Enum,
+    DateTime,
+    Sequence,
+    BigInteger,
+)
 import uuid
 
 from src.db.base import Base
@@ -9,6 +18,10 @@ from datetime import datetime
 
 class Session(Base):
     __tablename__ = "sessions"
+
+    session_number: Mapped[int] = mapped_column(
+        BigInteger, Sequence("sessions_number_seq"), unique=True, nullable=False
+    )
 
     formation_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -56,3 +69,8 @@ class Session(Base):
     )
 
     session_occurence = relationship("SessionOccurrence", back_populates="session")
+
+    @property
+    def reference(self):
+        year = self.date_debut.year
+        return f"SES-{year}-{self.session_number:04d}"

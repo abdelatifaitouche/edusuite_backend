@@ -12,12 +12,13 @@ class AppException(Exception):
 
 
 class NotFoundError(AppException):
-    def __init__(self, message: str):
-        super().__init__(message, status_code=404)
+    def __init__(self, message: str, details: dict | None = None):
+        super().__init__(message, status_code=404, details=details)
 
 
 class ValidationError(AppException):
-    pass
+    def __init__(self, message: str, details: dict | None = None):
+        super().__init__(message, status_code=422, details=details)
 
 
 class ProcessingError(AppException):

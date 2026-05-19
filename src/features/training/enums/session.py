@@ -18,6 +18,7 @@ class SessionState(StrEnum):
 
 
 class SessionOccurenceState(StrEnum):
+    DRAFT = "DRAFT"
     PLANNED = "PLANNED"
     ACTIF = "ACTIF"
     TERMINEE = "TERMINEE"

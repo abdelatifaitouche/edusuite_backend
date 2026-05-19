@@ -13,7 +13,8 @@ from src.features.training.domain.session_occurrence import (
 from src.features.training.domain.reccurence_rule import SessionRecurence
 from src.features.training.enums.session import SessionOccurenceState
 from src.features.training.repositories.occurrence_repo import OccurrenceRepository
-from src.core.exception import SessionConflictError
+from src.core.exception import SessionConflictError, NotFoundError, ValidationError
+from src.features.training.enums.session import SessionState, SessionOccurenceState
 
 
 class SessionOrchestrator:
@@ -129,3 +130,30 @@ class SessionOrchestrator:
         await self.s_occ_repo.bulk_insert(draft_occurences)
 
         return session
+
+    async def cancel_session(self, session_id: UUID):
+
+        session: SessionEntity | None = await self.session_service.get_by_id(session_id)
+
+        if not session:
+            raise NotFoundError(
+                message="Resource not found",
+                details={
+                    "resource": "session",
+                    "id": str(
+                        session_id,
+                    ),
+                },
+            )
+
+        if session.status in (
+            SessionState.TERMINEE,
+            SessionState.VALIDE,
+            SessionState.VALIDATION,
+        ):
+            raise ValidationError(
+                message="Cannot cancel a session at this stage",
+                details={"stage": session.status},
+            )
+
+        return

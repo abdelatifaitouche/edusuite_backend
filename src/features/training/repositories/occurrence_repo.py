@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
 from uuid import UUID
-from sqlalchemy import insert, text, bindparam
+from sqlalchemy import insert, text, bindparam, update
 from src.db.repositories.base_repository import BaseRepository
 from src.features.training.domain.session_occurrence import (
     SessionOccurence as SOccurrenceEntity,
@@ -69,6 +69,16 @@ class OccurrenceRepository(BaseRepository[SOccurrenceEntity, SOccurrenceDB]):
             formateur_conflict=any(r.formateur_id == formateur_id for r in data),
             salle_conflict=any(r.salle_id == salle_id for r in data),
         )
+
+    async def cancel_occurrences(self, session_id: UUID):
+        from src.features.training.enums.session import SessionOccurenceState
+
+        stmt = (
+            update(self.model)
+            .where(self.model.session_id == session_id)
+            .values(status=SessionOccurenceState.CANCELLED)
+        )
+        return
 
     async def bulk_insert(self, data: list[SOccurrenceEntity]):
         db_models = [self._to_orm(entity) for entity in data]

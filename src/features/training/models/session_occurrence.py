@@ -19,7 +19,7 @@ class SessionOccurrence(Base):
     end_at: Mapped[time] = mapped_column(Time, nullable=False)
     status: Mapped[SessionOccurenceState] = mapped_column(
         Enum(SessionOccurenceState),
-        default=SessionOccurenceState.PLANNED,
+        default=SessionOccurenceState.DRAFT,
     )
     note: Mapped[str] = mapped_column(String, nullable=True)
 

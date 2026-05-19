@@ -1,3 +1,5 @@
+from datetime import date
+from uuid import UUID
 from src.db.usecases.base_usecase import BaseUC
 from src.features.training.repositories.session_repo import SessionRepository
 from src.features.training.schemas.session import CreateSession
@@ -6,6 +8,8 @@ from src.features.training.domain.session import (
     Session as SessionEntity,
 )
 from src.features.training.repositories.reccurrence_repo import ReccurenceRepository
+from src.core.exception import ValidationError, NotFoundError
+from src.features.training.enums.session import SessionState, SessionOccurenceState
 
 
 class SessionUC(BaseUC[SessionEntity, CreateSession, CreateSession]):
@@ -25,11 +29,55 @@ class SessionUC(BaseUC[SessionEntity, CreateSession, CreateSession]):
         )
 
     async def create_session(self, data: CreateSession) -> SessionEntity:
-        # before creating session we should first check for formateur availablity, and salle availilibity
-        # so we should fetch occurences
+
+        if data.date_debut > data.date_fin:
+            raise ValidationError(
+                message="Invalid End Date",
+                details={
+                    "start": data.date_debut,
+                    "end": data.date_fin,
+                },
+            )
+
+        if data.date_debut < date.today() or data.date_fin < date.today():
+            raise ValidationError(
+                message="Date cannot be in the passed",
+                details={
+                    "start": data.date_debut,
+                    "end": data.date_fin,
+                },
+            )
+
         session: SessionEntity = await self.repo.save(self._to_entity(data))
 
         if not session:
             raise Exception("Session was not created")
 
         return session
+
+    async def cancel_session(self, session_id: UUID):
+
+        session: SessionEntity | None = await self.repo.get_by_id(session_id)
+
+        if not session:
+            raise NotFoundError(
+                message="Resource not found",
+                details={
+                    "resource": "session",
+                    "id": str(
+                        session_id,
+                    ),
+                },
+            )
+
+        if session.status in (
+            SessionState.TERMINEE,
+            SessionState.VALIDE,
+            SessionState.VALIDATION,
+        ):
+            raise ValidationError(
+                message="Cannot cancel a session at this stage",
+                details={"stage": session.status},
+            )
+
+        return

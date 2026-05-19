@@ -17,5 +17,5 @@ class Session:
     salle_id: UUID
     type_planinng: PlanningType
     status: SessionState | None = None
-
+    session_number: str | None = None
     id: UUID | None = None

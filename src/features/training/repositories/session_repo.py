@@ -13,6 +13,7 @@ class SessionRepository(BaseRepository[SessionEntity, SessionDB]):
     def _to_domain(self, orm: SessionDB) -> SessionEntity:
         return SessionEntity(
             id=orm.id,
+            session_number=orm.reference,
             formation_id=orm.formation_id,
             formateur_id=orm.formateur_id,
             start_date=orm.date_debut,

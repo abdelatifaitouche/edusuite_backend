@@ -4,6 +4,7 @@ from datetime import date, time
 
 from src.features.training.enums.session import SessionState, PlanningType
 from src.features.training.schemas.session_reccurrence import CreateRecurrenceRule
+from src.features.training.schemas.formation import FormationCompact
 
 
 class CreateSession(BaseModel):
@@ -18,14 +19,13 @@ class CreateSession(BaseModel):
 
 
 class ReadSession(BaseModel):
+    session_number: str
     formation_id: UUID
     formateur_id: UUID
     salle_id: UUID | None
-    statut: SessionState
-    type_planning: PlanningType
-    date_debut: date  # first occurrence
-    date_fin: date  # last occurrence
-
-    r_rule_id: UUID
+    status: SessionState
+    type_planinng: PlanningType
+    start_date: date  # first occurrence
+    end_date: date  # last occurrence
 
     model_config = {"from_attributes": True}
