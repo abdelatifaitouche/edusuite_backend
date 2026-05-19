@@ -32,3 +32,10 @@ class SessionRepository(BaseRepository[SessionEntity, SessionDB]):
             salle_id=entity.salle_id,
             planning_type=entity.type_planinng,
         )
+
+    async def _orm_update(self, orm: SessionDB, entity: SessionEntity):
+
+        if entity.status:
+            orm.status = entity.status
+
+        return orm

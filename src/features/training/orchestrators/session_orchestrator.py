@@ -156,4 +156,13 @@ class SessionOrchestrator:
                 details={"stage": session.status},
             )
 
-        return
+        session = await self.session_service.transition(session, SessionState.CANCELLED)
+        await self.s_occ_repo.cancel_occurrences(session_id)
+
+        return session
+
+    async def get_session_occurrences(self, session_id: UUID) -> list[SessionOccurence]:
+        occurrences: list[
+            SessionOccurence
+        ] = await self.s_occ_repo.get_session_occurences(session_id)
+        return occurrences

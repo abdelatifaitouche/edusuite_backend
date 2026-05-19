@@ -17,6 +17,19 @@ class SessionOccurence:
 
 
 @dataclass
+class SessionOccurrenceCompact:
+    session_number: str
+    session_id: UUID
+    formateur_name: str
+    formation_name: str
+    planned_date: date
+    start_at: time
+    end_date: time
+    status: SessionOccurenceState
+    id: UUID
+
+
+@dataclass
 class ConflictResult:
     conflicting_dates: list[date]
     formateur_conflict: bool

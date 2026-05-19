@@ -1,15 +1,19 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
 from uuid import UUID
-from sqlalchemy import insert, text, bindparam, update
+from sqlalchemy.orm import selectinload
+from sqlalchemy import insert, text, bindparam, update, select
 from src.db.repositories.base_repository import BaseRepository
 from src.features.training.domain.session_occurrence import (
     SessionOccurence as SOccurrenceEntity,
     ConflictResult,
+    SessionOccurrenceCompact as SOCompactEntity,
 )
 from src.features.training.models.session_occurrence import (
     SessionOccurrence as SOccurrenceDB,
 )
+from src.features.training.filters.session_occurrences import OccurrenceFilters
+from src.core.pagination import Pagination
 
 
 class OccurrenceRepository(BaseRepository[SOccurrenceEntity, SOccurrenceDB]):
@@ -17,6 +21,19 @@ class OccurrenceRepository(BaseRepository[SOccurrenceEntity, SOccurrenceDB]):
 
     def __init__(self, db: AsyncSession):
         super().__init__(db)
+
+    def _apply_filters(self, stmt, filters: OccurrenceFilters):
+
+        if filters.status:
+            stmt = stmt.where(self.model.status == filters.status)
+
+        if filters.start_date and filters.end_date:
+            stmt = stmt.where(
+                self.model.date >= filters.start_date,
+                self.model.date <= filters.end_date,
+            )
+
+        return stmt
 
     def _to_domain(self, orm: SOccurrenceDB) -> SOccurrenceEntity:
         return SOccurrenceEntity(
@@ -38,6 +55,57 @@ class OccurrenceRepository(BaseRepository[SOccurrenceEntity, SOccurrenceDB]):
             date=entity.planned_date,
             note=entity.notes,
         )
+
+    async def list_calendar(self, pagination: Pagination, filters: OccurrenceFilters):
+        from src.features.training.models.session import Session as SessionDB
+        from src.features.training.models.formateur import Formateur as FormateurDB
+        from src.features.training.models.formation import Formation as FormationDB
+
+        stmt = (
+            select(
+                self.model.id,
+                self.model.date,
+                self.model.status,
+                self.model.start_at,
+                self.model.end_at,
+                SessionDB.id.label("session_id"),
+                SessionDB.session_number,
+                FormationDB.titre.label("formation_titre"),
+                FormateurDB.nom.label("formateur_nom"),
+            )
+            .join(SessionDB, SessionDB.id == self.model.session_id)
+            .join(FormationDB, FormationDB.id == SessionDB.formation_id)
+            .join(FormateurDB, FormateurDB.id == SessionDB.formateur_id)
+        )
+        stmt = self._apply_filters(stmt, filters)
+        result = await self.db.execute(stmt)
+
+        data = result.all()
+
+        return [
+            SOCompactEntity(
+                session_number=d.session_number,
+                formateur_name=d.formateur_nom,
+                formation_name=d.formation_titre,
+                planned_date=d.date,
+                id=d.id,
+                start_at=d.start_at,
+                end_date=d.end_at,
+                status=d.status,
+                session_id=d.session_id,
+            )
+            for d in data
+        ]
+
+    async def get_session_occurences(self, session_id: UUID):
+
+        stmt = select(self.model).where(self.model.session_id == session_id)
+
+        result = await self.db.execute(stmt)
+
+        data = result.scalars()
+
+        return [self._to_domain(d) for d in data]
 
     async def check_conflicts(
         self, expected_dates: list[date], formateur_id: UUID, salle_id: UUID
@@ -78,7 +146,7 @@ class OccurrenceRepository(BaseRepository[SOccurrenceEntity, SOccurrenceDB]):
             .where(self.model.session_id == session_id)
             .values(status=SessionOccurenceState.CANCELLED)
         )
-        return
+        result = await self.db.execute(stmt)
 
     async def bulk_insert(self, data: list[SOccurrenceEntity]):
         db_models = [self._to_orm(entity) for entity in data]

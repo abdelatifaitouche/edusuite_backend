@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.session import get_db
-
+from uuid import UUID
 
 from src.features.training.schemas.session import CreateSession, ReadSession
 from src.features.training.orchestrators.session_orchestrator import SessionOrchestrator
@@ -13,6 +13,8 @@ from src.features.training.repositories.occurrence_repo import OccurrenceReposit
 from src.core.exception import SessionConflictError
 from src.core.filters import BaseFilters
 from src.core.pagination import Pagination
+from src.features.training.schemas.session_occurrences import ReadOccurrence
+
 
 router = APIRouter(prefix="/sessions")
 
@@ -42,6 +44,14 @@ async def create_session(
     return session
 
 
+@router.patch("/{session_id}/cancel/")
+async def cancel_session(
+    session_id: str, orch: SessionOrchestrator = Depends(get_orchestrator)
+):
+    session = await orch.cancel_session(UUID(session_id))
+    return ReadSession.model_validate(session)
+
+
 @router.get("/")
 async def list_sessions(
     pagination: Pagination = Depends(),
@@ -50,3 +60,12 @@ async def list_sessions(
 ):
     results = await uc.list(pagination, filters)
     return [ReadSession.model_validate(ses) for ses in results]
+
+
+@router.get("/{session_id}/occurrences")
+async def get_session_occurrences(
+    session_id: str,
+    orch: SessionOrchestrator = Depends(get_orchestrator),
+):
+    results = await orch.get_session_occurrences(UUID(session_id))
+    return [ReadOccurrence.model_validate(res) for res in results]

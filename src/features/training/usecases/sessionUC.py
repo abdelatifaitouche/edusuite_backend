@@ -55,29 +55,7 @@ class SessionUC(BaseUC[SessionEntity, CreateSession, CreateSession]):
 
         return session
 
-    async def cancel_session(self, session_id: UUID):
+    async def transition(self, entity: SessionEntity, state: SessionState):
+        entity.status = state
 
-        session: SessionEntity | None = await self.repo.get_by_id(session_id)
-
-        if not session:
-            raise NotFoundError(
-                message="Resource not found",
-                details={
-                    "resource": "session",
-                    "id": str(
-                        session_id,
-                    ),
-                },
-            )
-
-        if session.status in (
-            SessionState.TERMINEE,
-            SessionState.VALIDE,
-            SessionState.VALIDATION,
-        ):
-            raise ValidationError(
-                message="Cannot cancel a session at this stage",
-                details={"stage": session.status},
-            )
-
-        return
+        return await self.repo.save(entity)
