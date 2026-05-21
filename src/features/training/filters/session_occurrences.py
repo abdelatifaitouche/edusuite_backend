@@ -6,7 +6,6 @@ from src.features.training.enums.session import SessionOccurenceState
 class OccurrenceFilters(BaseModel):
     status: SessionOccurenceState | None = None
     start_date: date | None = None
-
     end_date: date | None = None
 
     @field_validator("start_date", mode="before")

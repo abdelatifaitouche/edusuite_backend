@@ -15,6 +15,18 @@ class SessionOccurence:
 
     id: UUID | None = None
 
+    @staticmethod
+    def to_domain(orm):
+        return SessionOccurence(
+            session_id=orm.session_id,
+            planned_date=orm.date,
+            start_at=orm.start_at,
+            end_at=orm.end_at,
+            status=orm.status,
+            notes=orm.note,
+            id=orm.id,
+        )
+
 
 @dataclass
 class SessionOccurrenceCompact:

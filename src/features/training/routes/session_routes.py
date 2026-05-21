@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.session import get_db
 from uuid import UUID
 
-from src.features.training.schemas.session import CreateSession, ReadSession
+from src.features.training.schemas.session import (
+    CreateSession,
+    ReadSession,
+    SessionDetails,
+)
 from src.features.training.orchestrators.session_orchestrator import SessionOrchestrator
 from src.features.training.usecases.sessionUC import SessionUC
 from src.features.training.repositories.session_repo import SessionRepository
@@ -42,6 +46,15 @@ async def create_session(
 ):
     session = await orch.create_session(data)
     return session
+
+
+@router.get("/{session_id}")
+async def get_session_by_id(
+    session_id: str,
+    uc: SessionUC = Depends(get_service),
+):
+    session = await uc.get_session_details(UUID(session_id))
+    return SessionDetails.model_validate(session)
 
 
 @router.patch("/{session_id}/cancel/")

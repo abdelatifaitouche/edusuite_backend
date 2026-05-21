@@ -28,6 +28,10 @@ class SessionUC(BaseUC[SessionEntity, CreateSession, CreateSession]):
             type_planinng=data.type_planning,
         )
 
+    async def get_session_details(self, session_id: UUID):
+        result = await self.repo.get_session_details(session_id)
+        return result
+
     async def create_session(self, data: CreateSession) -> SessionEntity:
 
         if data.date_debut > data.date_fin:
